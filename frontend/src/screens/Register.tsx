@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Building2 } from 'lucide-react';
 import { maskCnpj, validateEmail } from '../utils/formatters';
+import { toast } from 'sonner';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -16,8 +17,6 @@ export const Register: React.FC = () => {
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,22 +25,20 @@ export const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     const rawCnpj = cnpj.replace(/\D/g, '');
     if (rawCnpj.length !== 14) {
-      setError('CNPJ deve conter exatamente 14 dígitos.');
+      toast.error('CNPJ deve conter exatamente 14 dígitos.');
       return;
     }
 
     if (!validateEmail(email)) {
-      setError('Por favor, insira um e-mail válido.');
+      toast.error('Por favor, insira um e-mail válido.');
       return;
     }
 
     if (password.length < 8) {
-      setError('A senha deve conter pelo menos 8 caracteres.');
+      toast.error('A senha deve conter pelo menos 8 caracteres.');
       return;
     }
 
@@ -58,12 +55,12 @@ export const Register: React.FC = () => {
         }),
       });
 
-      setSuccess('Empresa cadastrada com sucesso! Redirecionando para o login...');
+      toast.success('Empresa cadastrada com sucesso! Redirecionando para o login...');
       setTimeout(() => {
-        navigate('/login');
+        navigate('/login', { state: { email } });
       }, 2500);
     } catch (err: any) {
-      setError(err.message || 'Erro ao realizar cadastro.');
+      toast.error(err.message || 'Erro ao realizar cadastro.');
     } finally {
       setLoading(false);
     }
@@ -87,18 +84,6 @@ export const Register: React.FC = () => {
             <Building2 className="w-5 h-5 text-primary" />
             Cadastre sua empresa
           </h2>
-
-          {error && (
-            <div className="mb-4 p-3 bg-accent-tomato/10 border border-accent-tomato/20 rounded-[6px] text-xs font-medium text-accent-tomato">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-[6px] text-xs font-medium text-primary-deep">
-              {success}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="border-b border-hairline pb-2 mb-1">

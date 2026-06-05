@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../context/store';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { LogIn } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const loginFn = useAuthStore((state) => state.login);
   const apiCall = useAuthStore((state) => state.apiCall);
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState((location.state as { email?: string })?.email || '');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     
     if (!email || !password) {
-      setError('Por favor, preencha todos os campos.');
+      toast.error('Por favor, preencha todos os campos.');
       return;
     }
     
@@ -33,9 +33,10 @@ export const Login: React.FC = () => {
       });
       
       loginFn(response.token, response.user, response.company);
+      toast.success('Login realizado com sucesso!');
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Erro ao realizar login. Verifique suas credenciais.');
+      toast.error(err.message || 'Erro ao realizar login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }
@@ -59,12 +60,6 @@ export const Login: React.FC = () => {
             <LogIn className="w-5 h-5 text-primary" />
             Acesse sua conta
           </h2>
-
-          {error && (
-            <div className="mb-4 p-3 bg-accent-tomato/10 border border-accent-tomato/20 rounded-[6px] text-xs font-medium text-accent-tomato">
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
