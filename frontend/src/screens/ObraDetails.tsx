@@ -464,7 +464,7 @@ export const ObraDetails: React.FC = () => {
                         <td className="p-4 text-primary">
                           {c.receipts && c.receipts.length > 0 ? (
                             <a
-                              href={`http://localhost:3001${c.receipts[0].fileUrl}`}
+                              href={c.receipts[0].fileUrl.startsWith('http') ? c.receipts[0].fileUrl : `http://localhost:3001${c.receipts[0].fileUrl}`}
                               target="_blank"
                               rel="noreferrer"
                               className="hover:underline font-semibold"
@@ -577,13 +577,13 @@ export const ObraDetails: React.FC = () => {
                       {v.photos.map((p, idx) => (
                         <a
                           key={idx}
-                          href={`http://localhost:3001${p.fileUrl}`}
+                          href={p.fileUrl.startsWith('http') ? p.fileUrl : `http://localhost:3001${p.fileUrl}`}
                           target="_blank"
                           rel="noreferrer"
                           className="w-24 h-24 rounded-[6px] border border-hairline overflow-hidden hover:opacity-85 transition-opacity bg-canvas-soft flex items-center justify-center"
                         >
                           <img
-                            src={`http://localhost:3001${p.fileUrl}`}
+                            src={p.fileUrl.startsWith('http') ? p.fileUrl : `http://localhost:3001${p.fileUrl}`}
                             alt={p.fileName}
                             className="w-full h-full object-cover"
                           />

@@ -357,7 +357,7 @@ export const ContractDetails: React.FC = () => {
                 {contract.uploads.map((up) => (
                   <a
                     key={up.uuid}
-                    href={`http://localhost:3001${up.fileUrl}`}
+                    href={up.fileUrl.startsWith('http') ? up.fileUrl : `http://localhost:3001${up.fileUrl}`}
                     target="_blank"
                     rel="noreferrer"
                     className="p-2 border border-hairline-cool bg-canvas-soft hover:bg-canvas rounded-[6px] text-xs font-medium text-ink-secondary flex items-center justify-between hover:border-hairline transition-colors"
