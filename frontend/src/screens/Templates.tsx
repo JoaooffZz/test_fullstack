@@ -4,6 +4,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Layers, Plus, X, Eye, FileSpreadsheet, PlusCircle, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 interface FieldInput {
@@ -135,8 +136,9 @@ export const Templates: React.FC = () => {
       setBody('');
       setFields([]);
       fetchTemplates();
+      toast.success('Template de contrato criado com sucesso!');
     } catch (err: any) {
-      alert(err.message || 'Erro ao criar template');
+      toast.error(err.message || 'Erro ao criar template');
     } finally {
       setCreateLoading(false);
     }

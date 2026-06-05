@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { ArrowLeft, FileText, Send, Calendar, User, DollarSign, Clock, Layers, PlusCircle, CheckCircle2, XCircle, Copy, Check, Paperclip, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SignatureRequestItem {
   uuid: string;
@@ -104,9 +105,10 @@ export const ContractDetails: React.FC = () => {
       });
       
       setGeneratedLink(res.link || `http://localhost:5173/assinar/${res.token}`);
+      toast.success('Assinatura solicitada com sucesso!');
       fetchContractDetails();
     } catch (err: any) {
-      alert(err.message || 'Erro ao solicitar assinatura');
+      toast.error(err.message || 'Erro ao solicitar assinatura');
     } finally {
       setSignatureLoading(false);
     }
@@ -124,9 +126,10 @@ export const ContractDetails: React.FC = () => {
       });
       setShowCloseModal(false);
       setCloseReason('');
+      toast.success('Contrato encerrado com sucesso!');
       fetchContractDetails();
     } catch (err: any) {
-      alert(err.message || 'Erro ao encerrar contrato');
+      toast.error(err.message || 'Erro ao encerrar contrato');
     } finally {
       setCloseLoading(false);
     }
@@ -149,10 +152,11 @@ export const ContractDetails: React.FC = () => {
       setAdditiveTitle('');
       setAdditiveChanges('');
       
+      toast.success('Aditivo contratual criado com sucesso!');
       // Navigate to the newly created additive contract details
       navigate(`/contratos/${res.uuid}`);
     } catch (err: any) {
-      alert(err.message || 'Erro ao criar aditivo');
+      toast.error(err.message || 'Erro ao criar aditivo');
     } finally {
       setAdditiveLoading(false);
     }
@@ -162,6 +166,7 @@ export const ContractDetails: React.FC = () => {
     if (!generatedLink) return;
     navigator.clipboard.writeText(generatedLink);
     setCopied(true);
+    toast.success('Link de assinatura copiado para a área de transferência!');
     setTimeout(() => setCopied(false), 2000);
   };
 

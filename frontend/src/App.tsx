@@ -17,6 +17,8 @@ import { ObraDetails } from './screens/ObraDetails';
 import { CreatePurchaseOrder } from './screens/CreatePurchaseOrder';
 import { Users } from './screens/Users';
 
+import { Toaster } from 'sonner';
+
 // Route protector and general private navigation layout
 const PrivateLayout: React.FC = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -37,35 +39,38 @@ const PrivateLayout: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/assinar/:token" element={<SignContract />} />
+    <>
+      <Toaster position="top-right" richColors />
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/assinar/:token" element={<SignContract />} />
 
-        {/* Private Routes */}
-        <Route element={<PrivateLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          
-          <Route path="/contratos" element={<Contracts />} />
-          <Route path="/contratos/novo" element={<CreateContract />} />
-          <Route path="/contratos/:uuid" element={<ContractDetails />} />
-          
-          <Route path="/templates" element={<Templates />} />
-          
-          <Route path="/obras" element={<Obras />} />
-          <Route path="/obras/:uuid" element={<ObraDetails />} />
-          
-          <Route path="/purchase-orders/novo" element={<CreatePurchaseOrder />} />
-          
-          <Route path="/usuarios" element={<Users />} />
-        </Route>
+          {/* Private Routes */}
+          <Route element={<PrivateLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            
+            <Route path="/contratos" element={<Contracts />} />
+            <Route path="/contratos/novo" element={<CreateContract />} />
+            <Route path="/contratos/:uuid" element={<ContractDetails />} />
+            
+            <Route path="/templates" element={<Templates />} />
+            
+            <Route path="/obras" element={<Obras />} />
+            <Route path="/obras/:uuid" element={<ObraDetails />} />
+            
+            <Route path="/purchase-orders/novo" element={<CreatePurchaseOrder />} />
+            
+            <Route path="/usuarios" element={<Users />} />
+          </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 };
 

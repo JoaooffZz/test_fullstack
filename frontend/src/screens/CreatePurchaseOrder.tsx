@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { ArrowLeft, Plus, Trash2, ShoppingBag, Receipt, DollarSign, Calendar } from 'lucide-react';
 import { maskCnpj, maskCurrency, parseCurrencyToNumber } from '../utils/formatters';
+import { toast } from 'sonner';
 
 interface ObraSummary {
   uuid: string;
@@ -124,10 +125,11 @@ export const CreatePurchaseOrder: React.FC = () => {
         body: JSON.stringify(payload),
       });
 
+      toast.success('Ordem de Compra emitida com sucesso!');
       // Navigate back to the obra detail panel
       navigate(`/obras/${obraUuid}`);
     } catch (err: any) {
-      alert(err.message || 'Erro ao emitir ordem de compra.');
+      toast.error(err.message || 'Erro ao emitir ordem de compra.');
     } finally {
       setLoading(false);
     }

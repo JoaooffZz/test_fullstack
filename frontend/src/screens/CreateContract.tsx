@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { ArrowLeft, Check, FileText, ChevronRight, ChevronLeft, Upload, Info } from 'lucide-react';
 import { maskPhone, maskCurrency, parseCurrencyToNumber, validateEmail } from '../utils/formatters';
+import { toast } from 'sonner';
 
 interface TemplateField {
   uuid: string;
@@ -228,14 +229,15 @@ export const CreateContract: React.FC = () => {
         files: files.length > 0 ? files : undefined,
       };
 
-      const res = await apiCall('/v1/contracts', {
+       const res = await apiCall('/v1/contracts', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
 
+      toast.success('Contrato criado com sucesso!');
       navigate(`/contratos/${res.uuid}`);
     } catch (err: any) {
-      alert(err.message || 'Erro ao criar o contrato');
+      toast.error(err.message || 'Erro ao criar o contrato');
     } finally {
       setLoading(false);
     }

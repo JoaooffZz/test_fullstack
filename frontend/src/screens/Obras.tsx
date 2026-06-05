@@ -6,6 +6,7 @@ import { Input } from '../components/Input';
 import { HardHat, Search, Filter, Plus, Calendar, MapPin, DollarSign, X, Check } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { maskCnpj, maskCurrency, parseCurrencyToNumber } from '../utils/formatters';
+import { toast } from 'sonner';
 
 interface ObraItem {
   uuid: string;
@@ -111,8 +112,9 @@ export const Obras: React.FC = () => {
       // Refresh list
       const obrasRes = await apiCall('/v1/obras');
       setObras(obrasRes);
+      toast.success('Obra cadastrada com sucesso!');
     } catch (err: any) {
-      alert(err.message || 'Erro ao cadastrar obra.');
+      toast.error(err.message || 'Erro ao cadastrar obra.');
     } finally {
       setCreateLoading(false);
     }

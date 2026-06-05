@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { CheckCircle, ShieldCheck, Eye, Calendar, User, FileText, HelpCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SignContractDetails {
   contract: {
@@ -67,9 +68,10 @@ export const SignContract: React.FC = () => {
         method: 'POST',
         body: JSON.stringify({ name: fullName }),
       });
+      toast.success('Documento assinado com sucesso!');
       setSignedSuccess(true);
     } catch (err: any) {
-      alert(err.message || 'Erro ao realizar assinatura eletrônica.');
+      toast.error(err.message || 'Erro ao realizar assinatura eletrônica.');
     } finally {
       setSigningLoading(false);
     }

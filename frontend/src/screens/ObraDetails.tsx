@@ -6,6 +6,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { HardHat, ArrowLeft, Calendar, MapPin, DollarSign, ListTodo, Landmark, Eye, Camera, Plus, Trash2, CheckCircle2, AlertTriangle, Upload, X, ShieldAlert } from 'lucide-react';
 import { maskCurrency, parseCurrencyToNumber } from '../utils/formatters';
+import { toast } from 'sonner';
 
 interface ObraStep {
   uuid: string;
@@ -121,8 +122,9 @@ export const ObraDetails: React.FC = () => {
       // Refetch details
       const updated = await apiCall(`/v1/obras/${uuid}`);
       setObra(updated);
+      toast.success('Etapa do cronograma atualizada!');
     } catch (err: any) {
-      alert(err.message || 'Erro ao atualizar etapa.');
+      toast.error(err.message || 'Erro ao atualizar etapa.');
     }
   };
 
@@ -154,8 +156,9 @@ export const ObraDetails: React.FC = () => {
       
       const updated = await apiCall(`/v1/obras/${uuid}`);
       setObra(updated);
+      toast.success('Despesa lançada com sucesso!');
     } catch (err: any) {
-      alert(err.message || 'Erro ao lançar despesa.');
+      toast.error(err.message || 'Erro ao lançar despesa.');
     } finally {
       setCustoLoading(false);
     }
@@ -183,8 +186,9 @@ export const ObraDetails: React.FC = () => {
       
       const updated = await apiCall(`/v1/obras/${uuid}`);
       setObra(updated);
+      toast.success('Vistoria registrada com sucesso!');
     } catch (err: any) {
-      alert(err.message || 'Erro ao registrar vistoria.');
+      toast.error(err.message || 'Erro ao registrar vistoria.');
     } finally {
       setVistoriaLoading(false);
     }
@@ -200,8 +204,9 @@ export const ObraDetails: React.FC = () => {
       });
       const updated = await apiCall(`/v1/obras/${uuid}`);
       setObra(updated);
+      toast.success('Lançamento financeiro excluído!');
     } catch (err: any) {
-      alert(err.message || 'Erro ao excluir custo.');
+      toast.error(err.message || 'Erro ao excluir custo.');
     }
   };
 

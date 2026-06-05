@@ -6,6 +6,8 @@ import { Input } from '../components/Input';
 import { FileText, Plus, Search, Filter, Download, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { toast } from 'sonner';
+
 interface ContractItem {
   uuid: string;
   title: string;
@@ -81,15 +83,19 @@ export const Contracts: React.FC = () => {
         'Authorization': `Bearer ${token}`
       }
     })
-    .then(res => res.blob())
+    .then(res => {
+      if (!res.ok) throw new Error('Falha no download do arquivo');
+      return res.blob();
+    })
     .then(blob => {
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
       link.download = 'relatorio_contratos.csv';
       link.click();
+      toast.success('Relatório CSV exportado com sucesso!');
     })
     .catch(err => {
-      alert('Erro ao exportar CSV: ' + err.message);
+      toast.error('Erro ao exportar CSV: ' + err.message);
     });
   };
 
