@@ -2,11 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_KEY || '';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: false,
+  },
+  realtime: {
+    transport: ws as any,
+  },
+});
 
 export interface UploadedFileInfo {
   fileName: string;
