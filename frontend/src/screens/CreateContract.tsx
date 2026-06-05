@@ -143,6 +143,22 @@ export const CreateContract: React.FC = () => {
     const fileList = Array.from(e.target.files);
     
     fileList.forEach(file => {
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`O arquivo "${file.name}" excede o limite de 5MB.`);
+        return;
+      }
+
+      // Validate file format
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+      const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+      const allowedExts = ['.png', '.jpeg', '.jpg', '.pdf'];
+      
+      if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+        alert(`O arquivo "${file.name}" possui formato inválido. Apenas PNG, JPEG e PDF são permitidos.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
@@ -530,7 +546,7 @@ export const CreateContract: React.FC = () => {
               <input
                 type="file"
                 multiple
-                accept="application/pdf,image/*"
+                accept="application/pdf,image/png,image/jpeg"
                 onChange={handleFileUpload}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />

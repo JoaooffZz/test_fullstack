@@ -84,7 +84,7 @@ export class CreateContractUseCase {
     if (input.files && input.files.length > 0) {
       for (const file of input.files) {
         try {
-          const fileInfo = UploadService.saveBase64(file.base64, file.name);
+          const fileInfo = await UploadService.uploadBase64ToSupabase(file.base64, file.name);
           await this.uploadRepository.create({
             companyUuid: input.companyUuid,
             entityType: 'contract',
@@ -96,7 +96,7 @@ export class CreateContractUseCase {
           });
         } catch (uploadError: any) {
           console.error('Erro ao processar anexo:', uploadError);
-          // Opcionalmente podemos lançar um erro ou ignorar e continuar
+          throw uploadError;
         }
       }
     }

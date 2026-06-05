@@ -24,7 +24,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Servir a pasta de uploads estaticamente
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));

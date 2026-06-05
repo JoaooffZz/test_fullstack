@@ -222,4 +222,80 @@ describe('E2E — Contratos', () => {
     expect(res.body.body).toContain('João da Silva');
     expect(res.body.body).toContain('Maria Oliveira');
   });
+
+  it('POST /v1/contracts (com anexo válido) → 201 envia para o Supabase', async () => {
+    const res = await request(app)
+      .post('/v1/contracts')
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({
+        title: 'Contrato com Anexo Válido',
+        type: 'SERVICO',
+        relatedParty: 'Fornecedor E2E',
+        relatedPartyEmail: 'fornecedor@email.com',
+        value: 1200.0,
+        startDate: '2025-06-01T00:00:00.000Z',
+        endDate: '2026-05-31T00:00:00.000Z',
+        body: 'Contrato de prestação de serviços com anexo.',
+        files: [
+          {
+            name: 'anexo_valido.pdf',
+            base64: 'data:application/pdf;base64,JVBERi0xLjQKJdXiwtODMxOAo='
+          }
+        ]
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.uuid).toBeDefined();
+
+    // Recupera o contrato para validar se a URL do anexo está presente
+    const getRes = await request(app)
+      .get(`/v1/contracts/${res.body.uuid}`)
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(getRes.status).toBe(200);
+    expect(getRes.body.uploads).toBeDefined();
+    expect(getRes.body.uploads.length).toBeGreaterThanOrEqual(1);
+    expect(getRes.body.uploads[0].fileName).toBe('anexo_valido.pdf');
+    expect(getRes.body.uploads[0].fileUrl).toContain('supabase.co');
+  });
+
+  it('POST /v1/contracts (com anexo inválido - tamanho ou formato) → 400 rejeitado', async () => {
+    // Caso 1: formato não permitido (.txt)
+    const resFormat = await request(app)
+      .post('/v1/contracts')
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({
+        title: 'Contrato com Formato Inválido',
+        type: 'SERVICO',
+        relatedParty: 'Fornecedor E2E',
+        relatedPartyEmail: 'fornecedor@email.com',
+        body: 'Contrato de prestação de serviços com anexo txt.',
+        files: [
+          {
+            name: 'anexo_invalido.txt',
+            base64: 'data:text/plain;base64,dGVzdGU='
+          }
+        ]
+      });
+    expect(resFormat.status).toBe(400);
+
+    // Caso 2: tamanho excedendo 5MB
+    // Criamos um buffer base64 maior que 5MB (excedendo ~3.75M caracteres base64)
+    const largeBase64 = 'data:application/pdf;base64,' + 'a'.repeat(8 * 1024 * 1024);
+    const resSize = await request(app)
+      .post('/v1/contracts')
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({
+        title: 'Contrato com Arquivo Gigante',
+        type: 'SERVICO',
+        relatedParty: 'Fornecedor E2E',
+        relatedPartyEmail: 'fornecedor@email.com',
+        body: 'Contrato com arquivo gigante.',
+        files: [
+          {
+            name: 'anexo_grande.pdf',
+            base64: largeBase64
+          }
+        ]
+      });
+    expect(resSize.status).toBe(400);
+  });
 });
