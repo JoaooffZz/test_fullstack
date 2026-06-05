@@ -1,0 +1,453 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// =============================================================
+// ENUMS
+// =============================================================
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+
+  @@map("user_role")
+}
+
+enum UserStatus {
+  ATIVO
+  INATIVO
+
+  @@map("user_status")
+}
+
+enum ContractType {
+  SERVICO
+  TRABALHO
+  OBRA
+  LOCACAO
+  OUTRO
+
+  @@map("contract_type")
+}
+
+enum ContractStatus {
+  RASCUNHO
+  AGUARDANDO_ASSINATURA
+  ASSINADO
+  VENCENDO
+  ENCERRADO
+
+  @@map("contract_status")
+}
+
+enum TemplateFieldType {
+  TEXT
+  NUMBER
+  DATE
+  SIGNATURE
+  ADDRESS
+
+  @@map("template_field_type")
+}
+
+enum SignatureChannel {
+  EMAIL
+  WHATSAPP
+  AMBOS
+  LINK
+
+  @@map("signature_channel")
+}
+
+enum SignatureStatus {
+  ENVIADO
+  VISUALIZADO
+  ASSINADO
+  EXPIRADO
+
+  @@map("signature_status")
+}
+
+enum ObraStatus {
+  PLANEJAMENTO
+  EM_EXECUCAO
+  CONCLUIDA
+  CANCELADA
+
+  @@map("obra_status")
+}
+
+enum ObraPhase {
+  PLANEJAMENTO
+  EXECUCAO
+  ENTREGA
+
+  @@map("obra_phase")
+}
+
+enum ObraStepStatus {
+  PENDENTE
+  EM_ANDAMENTO
+  CONCLUIDA
+
+  @@map("obra_step_status")
+}
+
+enum VistoriaType {
+  INICIAL
+  FINAL
+
+  @@map("vistoria_type")
+}
+
+enum CostCategory {
+  MATERIAL
+  MAO_DE_OBRA
+  EQUIPAMENTO
+  SERVICO
+  OUTRO
+
+  @@map("cost_category")
+}
+
+enum PurchaseOrderStatus {
+  RASCUNHO
+  EMITIDA
+  APROVADA
+  CANCELADA
+
+  @@map("purchase_order_status")
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  SIGN
+  SEND
+
+  @@map("audit_action")
+}
+
+// =============================================================
+// MODELS
+// =============================================================
+
+model Company {
+  uuid      String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  name      String   @db.VarChar(255)
+  cnpj      String   @unique @db.VarChar(14)
+  email     String?  @db.VarChar(255)
+  phone     String?  @db.VarChar(20)
+  address   String?  @db.Text
+  isActive  Boolean  @default(true) @map("is_active")
+
+  users             User[]
+  contractTemplates ContractTemplate[]
+  contracts         Contract[]
+  obras             Obra[]
+  purchaseOrders    PurchaseOrder[]
+  uploads           Upload[]
+  auditLogs         AuditLog[]
+
+  @@map("companies")
+}
+
+model User {
+  uuid         String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz
+  companyUuid  String     @map("company_uuid") @db.Uuid
+  name         String     @db.VarChar(255)
+  email        String     @db.VarChar(255)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  role         UserRole   @default(EDITOR)
+  status       UserStatus @default(ATIVO)
+
+  company Company @relation(fields: [companyUuid], references: [uuid], onDelete: Cascade)
+
+  contractsCreated Contract[]      @relation("ContractCreator")
+  obrasCreated     Obra[]          @relation("ObraCreator")
+  vistoriasCreated ObraVistoria[]  @relation("VistoriaCreator")
+  custosCreated    ObraCusto[]     @relation("CustoCreator")
+  poCreated        PurchaseOrder[] @relation("POCreator")
+  auditLogs        AuditLog[]
+
+  @@unique([companyUuid, email])
+  @@index([companyUuid])
+  @@index([email])
+  @@map("users")
+}
+
+model ContractTemplate {
+  uuid        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  companyUuid String   @map("company_uuid") @db.Uuid
+  name        String   @db.VarChar(255)
+  type        ContractType
+  description String?  @db.Text
+  body        String   @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+
+  company Company                 @relation(fields: [companyUuid], references: [uuid], onDelete: Cascade)
+  fields  ContractTemplateField[]
+  contracts Contract[]
+
+  @@index([companyUuid])
+  @@index([type])
+  @@map("contract_templates")
+}
+
+model ContractTemplateField {
+  uuid         String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  templateUuid String            @map("template_uuid") @db.Uuid
+  key          String            @db.VarChar(100)
+  label        String            @db.VarChar(255)
+  fieldType    TemplateFieldType @map("field_type")
+  isRequired   Boolean           @default(true) @map("is_required")
+  sortOrder    Int               @default(0) @map("sort_order") @db.SmallInt
+
+  template ContractTemplate @relation(fields: [templateUuid], references: [uuid], onDelete: Cascade)
+
+  @@unique([templateUuid, key])
+  @@index([templateUuid])
+  @@map("contract_template_fields")
+}
+
+model Contract {
+  uuid                 String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt            DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime       @default(now()) @map("updated_at") @db.Timestamptz
+  companyUuid          String         @map("company_uuid") @db.Uuid
+  templateUuid         String?        @map("template_uuid") @db.Uuid
+  createdByUuid        String?        @map("created_by_uuid") @db.Uuid
+  title                String         @db.VarChar(255)
+  type                 ContractType
+  status               ContractStatus @default(RASCUNHO)
+  relatedParty         String         @map("related_party") @db.VarChar(255)
+  relatedPartyEmail    String         @map("related_party_email") @db.VarChar(255)
+  relatedPartyWhatsapp String?        @map("related_party_whatsapp") @db.VarChar(20)
+  value                BigInt?
+  startDate            DateTime?      @map("start_date") @db.Date
+  endDate              DateTime?      @map("end_date") @db.Date
+  body                 String         @db.Text
+  fieldValues          Json?          @map("field_values")
+  closeReason          String?        @map("close_reason") @db.Text
+  originContractUuid   String?        @map("origin_contract_uuid") @db.Uuid
+
+  company        Company           @relation(fields: [companyUuid], references: [uuid], onDelete: Cascade)
+  template       ContractTemplate? @relation(fields: [templateUuid], references: [uuid], onDelete: SetNull)
+  creator        User?             @relation("ContractCreator", fields: [createdByUuid], references: [uuid], onDelete: SetNull)
+  originContract Contract?         @relation("ContractAdditives", fields: [originContractUuid], references: [uuid], onDelete: SetNull)
+  additives      Contract[]        @relation("ContractAdditives")
+
+  signatureRequests SignatureRequest[]
+  obras             Obra[]
+
+  @@index([companyUuid])
+  @@index([status])
+  @@index([type])
+  @@index([endDate])
+  @@index([relatedParty])
+  @@map("contracts")
+}
+
+model SignatureRequest {
+  uuid         String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime         @default(now()) @map("updated_at") @db.Timestamptz
+  contractUuid String           @map("contract_uuid") @db.Uuid
+  channel      SignatureChannel
+  status       SignatureStatus  @default(ENVIADO)
+  token        String           @unique @db.VarChar(255)
+  expiresAt    DateTime         @map("expires_at") @db.Timestamptz
+  signedAt     DateTime?        @map("signed_at") @db.Timestamptz
+  signerName   String?          @map("signer_name") @db.VarChar(255)
+  signerIp     String?          @map("signer_ip") @db.VarChar(45)
+
+  contract Contract @relation(fields: [contractUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([contractUuid])
+  @@index([token])
+  @@index([status])
+  @@map("signature_requests")
+}
+
+model Obra {
+  uuid            String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime   @default(now()) @map("updated_at") @db.Timestamptz
+  companyUuid     String     @map("company_uuid") @db.Uuid
+  contractUuid    String?    @map("contract_uuid") @db.Uuid
+  createdByUuid   String?    @map("created_by_uuid") @db.Uuid
+  name            String     @db.VarChar(255)
+  address         String     @db.Text
+  description     String?    @db.Text
+  status          ObraStatus @default(PLANEJAMENTO)
+  startDate       DateTime?  @map("start_date") @db.Date
+  endDate         DateTime?  @map("end_date") @db.Date
+  budgetTotal     BigInt?    @map("budget_total")
+  responsibleCnpj String?    @map("responsible_cnpj") @db.VarChar(14)
+
+  company Company   @relation(fields: [companyUuid], references: [uuid], onDelete: Cascade)
+  contract Contract? @relation(fields: [contractUuid], references: [uuid], onDelete: SetNull)
+  creator User?     @relation("ObraCreator", fields: [createdByUuid], references: [uuid], onDelete: SetNull)
+
+  steps          ObraStep[]
+  vistorias      ObraVistoria[]
+  custos         ObraCusto[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([companyUuid])
+  @@index([status])
+  @@index([contractUuid])
+  @@map("obras")
+}
+
+model ObraStep {
+  uuid        String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime       @default(now()) @map("updated_at") @db.Timestamptz
+  obraUuid    String         @map("obra_uuid") @db.Uuid
+  name        String         @db.VarChar(255)
+  phase       ObraPhase
+  status      ObraStepStatus @default(PENDENTE)
+  sortOrder   Int            @default(0) @map("sort_order") @db.SmallInt
+  completedAt DateTime?      @map("completed_at") @db.Timestamptz
+
+  obra Obra @relation(fields: [obraUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([obraUuid])
+  @@index([phase])
+  @@map("obra_steps")
+}
+
+model ObraVistoria {
+  uuid          String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  obraUuid      String       @map("obra_uuid") @db.Uuid
+  createdByUuid String?      @map("created_by_uuid") @db.Uuid
+  type          VistoriaType
+  description   String?      @db.Text
+
+  obra    Obra  @relation(fields: [obraUuid], references: [uuid], onDelete: Cascade)
+  creator User? @relation("VistoriaCreator", fields: [createdByUuid], references: [uuid], onDelete: SetNull)
+
+  @@index([obraUuid])
+  @@index([type])
+  @@map("obra_vistorias")
+}
+
+model ObraCusto {
+  uuid          String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  obraUuid      String       @map("obra_uuid") @db.Uuid
+  createdByUuid String?      @map("created_by_uuid") @db.Uuid
+  description   String       @db.VarChar(255)
+  category      CostCategory
+  value         BigInt
+  date          DateTime     @db.Date
+
+  obra    Obra  @relation(fields: [obraUuid], references: [uuid], onDelete: Cascade)
+  creator User? @relation("CustoCreator", fields: [createdByUuid], references: [uuid], onDelete: SetNull)
+
+  @@index([obraUuid])
+  @@index([category])
+  @@index([date])
+  @@map("obra_custos")
+}
+
+model PurchaseOrder {
+  uuid          String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime            @default(now()) @map("updated_at") @db.Timestamptz
+  companyUuid   String              @map("company_uuid") @db.Uuid
+  obraUuid      String?             @map("obra_uuid") @db.Uuid
+  createdByUuid String?             @map("created_by_uuid") @db.Uuid
+  number        String              @db.VarChar(50)
+  status        PurchaseOrderStatus @default(RASCUNHO)
+  supplierName  String              @map("supplier_name") @db.VarChar(255)
+  supplierCnpj  String?             @map("supplier_cnpj") @db.VarChar(14)
+  payerCnpj     String              @map("payer_cnpj") @db.VarChar(14)
+  deliveryDate  DateTime?           @map("delivery_date") @db.Date
+  notes         String?             @db.Text
+
+  company Company @relation(fields: [companyUuid], references: [uuid], onDelete: Cascade)
+  obra    Obra?   @relation(fields: [obraUuid], references: [uuid], onDelete: SetNull)
+  creator User?   @relation("POCreator", fields: [createdByUuid], references: [uuid], onDelete: SetNull)
+
+  items PurchaseOrderItem[]
+
+  @@unique([companyUuid, number])
+  @@index([companyUuid])
+  @@index([obraUuid])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  uuid              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  purchaseOrderUuid String   @map("purchase_order_uuid") @db.Uuid
+  description       String   @db.VarChar(255)
+  quantity          Decimal  @db.Decimal(12, 3)
+  unit              String   @db.VarChar(20)
+  unitPrice         BigInt   @map("unit_price")
+  totalPrice        BigInt   @map("total_price") @default(dbgenerated())
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([purchaseOrderUuid])
+  @@map("purchase_order_items")
+}
+
+model Upload {
+  uuid        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  companyUuid String   @map("company_uuid") @db.Uuid
+  entityType  String   @map("entity_type") @db.VarChar(50)
+  entityUuid  String   @map("entity_uuid") @db.Uuid
+  fileName    String   @map("file_name") @db.VarChar(255)
+  fileUrl     String   @map("file_url") @db.Text
+  mimeType    String?  @map("mime_type") @db.VarChar(100)
+  sizeBytes   BigInt?  @map("size_bytes")
+
+  company Company @relation(fields: [companyUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([entityType, entityUuid])
+  @@index([companyUuid])
+  @@map("uploads")
+}
+
+model AuditLog {
+  uuid        String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  companyUuid String      @map("company_uuid") @db.Uuid
+  userUuid    String?     @map("user_uuid") @db.Uuid
+  action      AuditAction
+  entityType  String      @map("entity_type") @db.VarChar(50)
+  entityUuid  String?     @map("entity_uuid") @db.Uuid
+  description String?     @db.Text
+  metadata    Json?
+  ipAddress   String?     @map("ip_address") @db.VarChar(45)
+
+  company Company @relation(fields: [companyUuid], references: [uuid], onDelete: Cascade)
+  user    User?   @relation(fields: [userUuid], references: [uuid], onDelete: SetNull)
+
+  @@index([companyUuid])
+  @@index([entityType, entityUuid])
+  @@index([userUuid])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
