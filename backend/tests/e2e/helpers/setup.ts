@@ -75,8 +75,7 @@ export async function cleanupTenant(pool: pg.Pool, cnpj: string): Promise<void> 
   await pool.query(`DELETE FROM obras WHERE company_uuid = $1`, [companyUuid]);
   await pool.query(`DELETE FROM contracts WHERE company_uuid = $1`, [companyUuid]);
   await pool.query(`DELETE FROM contract_templates WHERE company_uuid = $1`, [companyUuid]);
-  await pool.query(`DELETE FROM users WHERE email LIKE '%@test.com' AND uuid IN (SELECT uuid FROM users WHERE email LIKE '%@test.com')`);
-  await pool.query(`DELETE FROM users WHERE email LIKE $1`, [`e2e_admin_%@test.com`]);
+  await pool.query(`DELETE FROM users WHERE company_uuid = $1`, [companyUuid]);
   await pool.query(`DELETE FROM companies WHERE cnpj = $1`, [cnpj]);
 }
 

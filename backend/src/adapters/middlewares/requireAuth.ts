@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { TokenPayload } from '../../core/ports/services/TokenService';
+import { JwtTokenService } from '../../infrastructure/providers/JwtTokenService';
+import { prisma } from '../../infrastructure/database/prisma';
 
 declare global {
   namespace Express {
@@ -10,11 +12,9 @@ declare global {
   }
 }
 
-import { JwtTokenService } from '../../infrastructure/providers/JwtTokenService';
-
 const tokenService = new JwtTokenService();
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -33,6 +33,16 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
   try {
     const decoded = tokenService.verify(token);
+    
+    // Verify user exists in the database (handles stale JWT sessions after database restarts/resets)
+    const dbUser = await prisma.user.findUnique({
+      where: { uuid: decoded.user.uuid },
+    });
+
+    if (!dbUser) {
+      res.status(401).json({ message: 'Usuário não encontrado ou sessão expirada' });
+      return;
+    }
     
     // Anexa as informações ao request
     req.user = decoded.user;
