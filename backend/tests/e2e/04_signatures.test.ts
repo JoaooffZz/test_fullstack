@@ -68,7 +68,7 @@ describe('E2E — Assinaturas Eletrônicas', () => {
     expect(res.status).toBe(200);
     expect(res.body.contract).toBeDefined();
     expect(res.body.contract.title).toBe('Contrato para Assinatura E2E');
-    expect(res.body.status).toBe('PENDENTE');
+    expect(res.body.request.status).toBe('ENVIADO');
   });
 
   it('GET /v1/sign/token-invalido → 404 ou 400', async () => {

@@ -2,16 +2,22 @@ import { SignatureRequestRepository } from '../../core/ports/repositories/Signat
 import { ContractRepository } from '../../core/ports/repositories/ContractRepository';
 
 interface ValidatedTokenOutput {
-  token: string;
-  status: string;
   contract: {
     uuid: string;
     title: string;
     body: string;
+    type: string;
     relatedParty: string;
     relatedPartyEmail: string;
+    value: number | null;
   };
-  expiresAt: Date;
+  request: {
+    uuid: string;
+    status: string;
+    expiresAt: Date;
+    signerName: string | null;
+    signedAt: Date | null;
+  };
 }
 
 export class ValidateSignatureTokenUseCase {
@@ -54,16 +60,22 @@ export class ValidateSignatureTokenUseCase {
     }
 
     return {
-      token: request.token,
-      status: 'PENDENTE',
       contract: {
         uuid: contract.uuid!,
         title: contract.title,
         body: contract.body,
+        type: contract.type,
         relatedParty: contract.relatedParty,
         relatedPartyEmail: contract.relatedPartyEmail,
+        value: contract.value ? Number(contract.value) : null,
       },
-      expiresAt: request.expiresAt,
+      request: {
+        uuid: request.uuid!,
+        status: request.status,
+        expiresAt: request.expiresAt,
+        signerName: request.signerName || null,
+        signedAt: request.signedAt || null,
+      },
     };
   }
 }

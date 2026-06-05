@@ -49,8 +49,8 @@ export class CreateSignatureRequestUseCase {
     contract.status = 'AGUARDANDO_ASSINATURA';
     await this.contractRepository.update(contract);
 
-    // Disparar notificação (mock)
-    NotificationService.sendSignatureNotification(
+    // Disparar notificação (e-mail real via ethereal / mock whatsapp)
+    await NotificationService.sendSignatureNotification(
       input.channel,
       contract.relatedPartyEmail,
       contract.relatedPartyWhatsapp,

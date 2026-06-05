@@ -46,6 +46,10 @@ export class ExecuteSignatureUseCase {
 
     await this.signatureRequestRepository.update(request);
 
+    // Atualizar o status do contrato
+    contract.status = 'ASSINADO';
+    await this.contractRepository.update(contract);
+
     // Registrar log de auditoria
     await this.auditRepository.create({
       companyUuid: contract.companyUuid,
