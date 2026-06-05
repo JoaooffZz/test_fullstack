@@ -1,4 +1,4 @@
-# Supabaze UI — Portal de Gestão de Contratos e Obras
+# GestaPro UI — Portal de Gestão de Contratos e Obras
 
 Este diretório contém o frontend da plataforma multi-tenant de gestão de contratos, obras e suprimentos, desenvolvida de forma responsiva, moderna e orientada a performance.
 

@@ -113,7 +113,7 @@ export const SignContract: React.FC = () => {
         {/* Top Header Logo (Public) */}
         <div className="flex items-center justify-between border-b border-hairline pb-4 mb-2">
           <div className="text-lg font-bold tracking-tight text-ink flex items-center gap-1">
-            Supabaze<span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+            GestaPro<span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
             <span className="text-ink-mute font-medium text-xs border border-hairline px-1.5 py-0.5 rounded-[4px]">Sign</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-ink-mute">

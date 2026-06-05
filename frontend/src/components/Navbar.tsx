@@ -26,7 +26,7 @@ export const Navbar: React.FC = () => {
       {/* Logo */}
       <div className="flex items-center gap-2">
         <Link to="/" className="text-lg font-bold tracking-tight text-ink flex items-center gap-1">
-          Supabaze<span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span className="text-ink-mute font-medium text-xs border border-hairline px-1.5 py-0.5 rounded-[4px]">ERP</span>
+          GestaPro<span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span className="text-ink-mute font-medium text-xs border border-hairline px-1.5 py-0.5 rounded-[4px]">ERP</span>
         </Link>
       </div>
 

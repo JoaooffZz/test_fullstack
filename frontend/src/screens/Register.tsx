@@ -72,7 +72,7 @@ export const Register: React.FC = () => {
         {/* Logo */}
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="text-2xl font-bold tracking-tight text-ink flex items-center gap-1">
-            Supabaze<span className="w-2 h-2 rounded-full bg-primary"></span>
+            GestaPro<span className="w-2 h-2 rounded-full bg-primary"></span>
           </div>
           <p className="text-sm text-ink-mute">
             Crie sua conta multi-tenant em minutos
