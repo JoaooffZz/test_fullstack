@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { HardHat, Search, Filter, Plus, Calendar, MapPin, DollarSign, X, Check } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { maskCnpj, maskCurrency, parseCurrencyToNumber } from '../utils/formatters';
 
 interface ObraItem {
   uuid: string;
@@ -70,15 +71,6 @@ export const Obras: React.FC = () => {
     fetchObrasAndContracts();
   }, []);
 
-  const formatCnpj = (value: string) => {
-    const raw = value.replace(/\D/g, '').substring(0, 14);
-    if (raw.length <= 2) return raw;
-    if (raw.length <= 5) return `${raw.substring(0, 2)}.${raw.substring(2)}`;
-    if (raw.length <= 8) return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5)}`;
-    if (raw.length <= 12) return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5, 8)}/${raw.substring(8)}`;
-    return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5, 8)}/${raw.substring(8, 12)}-${raw.substring(12)}`;
-  };
-
   const handleCreateObra = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !address) {
@@ -89,7 +81,8 @@ export const Obras: React.FC = () => {
     setCreateLoading(true);
     try {
       const rawCnpj = responsibleCnpj.replace(/\D/g, '');
-      const numericBudget = budgetTotal ? Math.round(parseFloat(budgetTotal) * 100) : null;
+      const rawBudget = parseCurrencyToNumber(budgetTotal);
+      const numericBudget = rawBudget > 0 ? Math.round(rawBudget * 100) : null;
 
       await apiCall('/v1/obras', {
         method: 'POST',
@@ -340,17 +333,17 @@ export const Obras: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Orçamento Previsto (R$)"
-                  type="number"
-                  placeholder="Ex: 150000.00"
+                  label="Orçamento Previsto"
+                  type="text"
+                  placeholder="R$ 0,00"
                   value={budgetTotal}
-                  onChange={(e) => setBudgetTotal(e.target.value)}
+                  onChange={(e) => setBudgetTotal(maskCurrency(e.target.value))}
                 />
                 <Input
                   label="CNPJ do Responsável"
-                  placeholder="Ex: 00.000.000/0000-00"
+                  placeholder="00.000.000/0000-00"
                   value={responsibleCnpj}
-                  onChange={(e) => setResponsibleCnpj(formatCnpj(e.target.value))}
+                  onChange={(e) => setResponsibleCnpj(maskCnpj(e.target.value))}
                 />
               </div>
 

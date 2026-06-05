@@ -5,6 +5,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Building2 } from 'lucide-react';
+import { maskCnpj, validateEmail } from '../utils/formatters';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -19,18 +20,8 @@ export const Register: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Helper to format CNPJ: XX.XXX.XXX/XXXX-XX
-  const formatCnpj = (value: string) => {
-    const raw = value.replace(/\D/g, '').substring(0, 14);
-    if (raw.length <= 2) return raw;
-    if (raw.length <= 5) return `${raw.substring(0, 2)}.${raw.substring(2)}`;
-    if (raw.length <= 8) return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5)}`;
-    if (raw.length <= 12) return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5, 8)}/${raw.substring(8)}`;
-    return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5, 8)}/${raw.substring(8, 12)}-${raw.substring(12)}`;
-  };
-
   const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCnpj(formatCnpj(e.target.value));
+    setCnpj(maskCnpj(e.target.value));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,6 +32,11 @@ export const Register: React.FC = () => {
     const rawCnpj = cnpj.replace(/\D/g, '');
     if (rawCnpj.length !== 14) {
       setError('CNPJ deve conter exatamente 14 dígitos.');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('Por favor, insira um e-mail válido.');
       return;
     }
 

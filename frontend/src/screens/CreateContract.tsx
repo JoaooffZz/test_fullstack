@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { ArrowLeft, Check, FileText, ChevronRight, ChevronLeft, Upload, Info } from 'lucide-react';
+import { maskPhone, maskCurrency, parseCurrencyToNumber, validateEmail } from '../utils/formatters';
 
 interface TemplateField {
   uuid: string;
@@ -163,6 +164,10 @@ export const CreateContract: React.FC = () => {
         alert('Por favor, preencha o Título, Nome e E-mail da Parte Relacionada.');
         return;
       }
+      if (!validateEmail(relatedPartyEmail)) {
+        alert('Por favor, insira um e-mail válido para a Parte Relacionada.');
+        return;
+      }
       // If we have a template, go to variables (Step 2), else skip to step 3 (body preview/edit)
       if (selectedTemplate) {
         setStep(2);
@@ -189,7 +194,8 @@ export const CreateContract: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const numericValue = value ? Math.round(parseFloat(value.replace(/[^\d.]/g, '')) * 100) : null;
+      const rawValue = parseCurrencyToNumber(value);
+      const numericValue = rawValue > 0 ? Math.round(rawValue * 100) : null;
       
       const payload = {
         templateUuid: templateUuid || null,
@@ -318,12 +324,11 @@ export const CreateContract: React.FC = () => {
               )}
 
               <Input
-                label="Valor do Contrato (R$)"
-                placeholder="Ex: 50000.00"
-                type="number"
-                step="0.01"
+                label="Valor do Contrato"
+                placeholder="R$ 0,00"
+                type="text"
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => setValue(maskCurrency(e.target.value))}
               />
 
               <div className="grid grid-cols-2 gap-4">
@@ -366,9 +371,9 @@ export const CreateContract: React.FC = () => {
 
               <Input
                 label="WhatsApp (com DDD)"
-                placeholder="Ex: 11999999999"
+                placeholder="(11) 99999-9999"
                 value={relatedPartyWhatsapp}
-                onChange={(e) => setRelatedPartyWhatsapp(e.target.value)}
+                onChange={(e) => setRelatedPartyWhatsapp(maskPhone(e.target.value))}
               />
 
               {!selectedTemplate && (

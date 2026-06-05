@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { ArrowLeft, Plus, Trash2, ShoppingBag, Receipt, DollarSign, Calendar } from 'lucide-react';
+import { maskCnpj, maskCurrency, parseCurrencyToNumber } from '../utils/formatters';
 
 interface ObraSummary {
   uuid: string;
@@ -57,14 +58,7 @@ export const CreatePurchaseOrder: React.FC = () => {
     fetchObras();
   }, [apiCall]);
 
-  const formatCnpj = (value: string) => {
-    const raw = value.replace(/\D/g, '').substring(0, 14);
-    if (raw.length <= 2) return raw;
-    if (raw.length <= 5) return `${raw.substring(0, 2)}.${raw.substring(2)}`;
-    if (raw.length <= 8) return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5)}`;
-    if (raw.length <= 12) return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5, 8)}/${raw.substring(8)}`;
-    return `${raw.substring(0, 2)}.${raw.substring(2, 5)}.${raw.substring(5, 8)}/${raw.substring(8, 12)}-${raw.substring(12)}`;
-  };
+
 
   const handleAddItem = () => {
     setItems([...items, { description: '', quantity: '1', unit: 'UN', unitPrice: '' }]);
@@ -84,7 +78,7 @@ export const CreatePurchaseOrder: React.FC = () => {
   // Calculations
   const calculateLineTotal = (item: PurchaseOrderItemInput) => {
     const q = parseFloat(item.quantity) || 0;
-    const p = parseFloat(item.unitPrice) || 0;
+    const p = parseCurrencyToNumber(item.unitPrice);
     return q * p;
   };
 
@@ -101,7 +95,7 @@ export const CreatePurchaseOrder: React.FC = () => {
 
     // Validate items
     const invalidItems = items.some(
-      (item) => !item.description || parseFloat(item.quantity) <= 0 || parseFloat(item.unitPrice) <= 0
+      (item) => !item.description || parseFloat(item.quantity) <= 0 || parseCurrencyToNumber(item.unitPrice) <= 0
     );
     if (invalidItems) {
       alert('Por favor, garanta que todos os itens tenham descrição, quantidade > 0 e preço unitário > 0.');
@@ -121,7 +115,7 @@ export const CreatePurchaseOrder: React.FC = () => {
           description: item.description,
           quantity: parseFloat(item.quantity),
           unit: item.unit,
-          unitPrice: Math.round(parseFloat(item.unitPrice) * 100), // convert to cents
+          unitPrice: Math.round(parseCurrencyToNumber(item.unitPrice) * 100), // convert to cents
         })),
       };
 
@@ -206,13 +200,13 @@ export const CreatePurchaseOrder: React.FC = () => {
                 label="CNPJ do Fornecedor"
                 placeholder="Ex: 00.000.000/0000-00"
                 value={supplierCnpj}
-                onChange={(e) => setSupplierCnpj(formatCnpj(e.target.value))}
+                onChange={(e) => setSupplierCnpj(maskCnpj(e.target.value))}
               />
               <Input
                 label="CNPJ do Pagador (Sua Empresa)"
                 placeholder="Ex: 00.000.000/0000-00"
                 value={payerCnpj}
-                onChange={(e) => setPayerCnpj(formatCnpj(e.target.value))}
+                onChange={(e) => setPayerCnpj(maskCnpj(e.target.value))}
                 required
               />
               <Input
@@ -296,11 +290,10 @@ export const CreatePurchaseOrder: React.FC = () => {
                   <div className="w-32 shrink-0">
                     <Input
                       label={idx === 0 ? "Preço Unit. (R$)" : undefined}
-                      type="number"
-                      step="0.01"
-                      placeholder="Ex: 15.50"
+                      type="text"
+                      placeholder="R$ 0,00"
                       value={item.unitPrice}
-                      onChange={(e) => handleUpdateItem(idx, 'unitPrice', e.target.value)}
+                      onChange={(e) => handleUpdateItem(idx, 'unitPrice', maskCurrency(e.target.value))}
                       required
                     />
                   </div>
